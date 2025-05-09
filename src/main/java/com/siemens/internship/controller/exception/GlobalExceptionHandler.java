@@ -1,4 +1,4 @@
-package com.siemens.internship.exception;
+package com.siemens.internship.controller.exception;
 
 
 import org.springframework.web.bind.MethodArgumentNotValidException;
