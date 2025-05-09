@@ -13,34 +13,35 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/items")
 @Validated
 public class ItemController {
-
     @Autowired
     private ItemService itemService;
 
     @GetMapping
     public ResponseEntity<List<Item>> getAllItems() {
-        return new ResponseEntity<>(itemService.findAll(), HttpStatus.OK);
+        List<Item> allItems = itemService.findAll();
+
+        if (allItems.isEmpty()) {
+            return new ResponseEntity<>(allItems, HttpStatus.NO_CONTENT);
+        }
+        else {
+            return new ResponseEntity<>(allItems, HttpStatus.OK);
+        }
     }
 
     @PostMapping
-    public ResponseEntity<?> createItem(@Valid @RequestBody Item item, BindingResult result) {
-        if (result.hasErrors()) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<Item> createItem(@Valid @RequestBody Item item) {
         return new ResponseEntity<>(itemService.save(item), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Item> getItemById(@PathVariable Long id) {
-        return itemService.findById(id)
-                .map(item -> new ResponseEntity<>(item, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        Optional<Item> existingItem = itemService.findById(id);
+        return existingItem.map(item -> new ResponseEntity<>(item, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping("/{id}")
@@ -56,8 +57,13 @@ public class ItemController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
-        itemService.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        Optional<Item> existingItem = itemService.findById(id);
+        if (existingItem.isPresent()) {
+            itemService.deleteById(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/process")
