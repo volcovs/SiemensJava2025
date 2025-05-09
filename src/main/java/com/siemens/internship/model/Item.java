@@ -24,6 +24,7 @@ public class Item {
     private String description;
     private String status;
 
+    // Validates email format using regex; throws validation error on invalid input
     @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "Invalid email format")
     private String email;
 }

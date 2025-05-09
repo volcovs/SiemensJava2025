@@ -17,45 +17,45 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ItemService {
     @Autowired
     private ItemRepository itemRepository;
+    // Thread pool for asynchronous task execution
     private static ExecutorService executor = Executors.newFixedThreadPool(10);
+    // Thread-safe list to store processed items
     private List<Item> processedItems = Collections.synchronizedList(new ArrayList<>());
+    // Atomic counter for processed item count (thread-safe)
     private AtomicInteger processedCount = new AtomicInteger(0);
 
-
+    // Fetch all items from database
     public List<Item> findAll() {
         return itemRepository.findAll();
     }
 
+    // Fetch a single item from database by its id
     public Optional<Item> findById(Long id) {
         return itemRepository.findById(id);
     }
 
+    // Save or update an item in the database
     public Item save(Item item) {
         return itemRepository.save(item);
     }
 
+    // Delete an item by its id
     public void deleteById(Long id) {
         itemRepository.deleteById(id);
     }
 
+    // Delete all items - clean up the database
+    public void deleteAll() {
+        itemRepository.deleteAll();
+    }
 
     /**
-     * Your Tasks
-     * Identify all concurrency and asynchronous programming issues in the code
-     * Fix the implementation to ensure:
-     * All items are properly processed before the CompletableFuture completes
-     * Thread safety for all shared state
-     * Proper error handling and propagation
-     * Efficient use of system resources
-     * Correct use of Spring's @Async annotation
-     * Add appropriate comments explaining your changes and why they fix the issues
-     * Write a brief explanation of what was wrong with the original implementation
-     *
-     * Hints
-     * Consider how CompletableFuture composition can help coordinate multiple async operations
-     * Think about appropriate thread-safe collections
-     * Examine how errors are handled and propagated
-     * Consider the interaction between Spring's @Async and CompletableFuture
+     * Processes all items asynchronously:
+     * - Uses CompletableFuture and a thread pool
+     * - Waits for all tasks to complete before returning result
+     * - Ensures thread safety and proper error handling
+     * - Stores the processedItems in a thread-safe list
+     * - Increments an atomic counter whenever an item is processed succesfully
      */
     @Async
     public CompletableFuture<List<Item>> processItemsAsync() {
@@ -88,7 +88,5 @@ public class ItemService {
                 .allOf(futures.toArray(new CompletableFuture[0]))
                 .thenApply(v -> processedItems);
     }
-
-
 }
 
