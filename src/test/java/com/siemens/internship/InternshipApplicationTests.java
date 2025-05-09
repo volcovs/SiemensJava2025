@@ -2,6 +2,7 @@ package com.siemens.internship;
 
 import com.siemens.internship.model.Item;
 import com.siemens.internship.service.ItemService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,13 @@ class InternshipApplicationTests {
 
 	@BeforeEach
 	void clearDatabase() {
+		System.out.println("Beginning test...");
 		itemService.deleteAll();
+	}
+
+	@AfterEach
+	void endTest() {
+		System.out.println("Test finished...");
 	}
 
 	@Test
@@ -40,6 +47,7 @@ class InternshipApplicationTests {
 		// Mock test to see that everything is set up
 	}
 
+	// 1. Creates 3 valid items and verifies they can be retrieved
 	@Test
 	void shouldCreateAndRetrieveThreeItems() throws Exception {
 		for (int i = 1; i <= 3; i++) {
@@ -61,6 +69,7 @@ class InternshipApplicationTests {
 				.andExpect(jsonPath("$.length()").value(3));
 	}
 
+	// 2. Attempts to create a mix of valid and invalid items (invalid email), expects partial failure
 	@Test
 	void shouldHandleValidAndInvalidItems() throws Exception {
 		// Valid
@@ -103,6 +112,7 @@ class InternshipApplicationTests {
 				.andExpect(status().isBadRequest());
 	}
 
+	// 3. Updates existing items and verifies the changes persist
 	@Test
 	void shouldUpdateItemSuccessfully() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/items")
@@ -137,6 +147,7 @@ class InternshipApplicationTests {
 				.andExpect(jsonPath("$.name").value("Updated Item"));
 	}
 
+	// 4. Attempts to update items, including one with invalid data, expects validation failure
 	@Test
 	void shouldFailToUpdateWithInvalidEmail() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/items")
@@ -167,6 +178,7 @@ class InternshipApplicationTests {
 				.andExpect(status().isBadRequest());
 	}
 
+	// 5. Creates items, retrieves by valid id, and tries to retrieve a non-existent id
 	@Test
 	void shouldFindByIdAndHandleNotFound() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/items")
@@ -192,6 +204,7 @@ class InternshipApplicationTests {
 				.andExpect(status().isNotFound());
 	}
 
+	// 6. Creates and deletes 3 items, then verifies deletion
 	@Test
 	void shouldDeleteThreeItems() throws Exception {
 		for (int i = 0; i < 3; i++) {
@@ -218,6 +231,7 @@ class InternshipApplicationTests {
 				.andExpect(status().isNoContent());
 	}
 
+	// 7. Tries deleting items, with some IDs missing; expects partial failure
 	@Test
 	void shouldHandleDeleteErrors() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/items")
@@ -242,6 +256,7 @@ class InternshipApplicationTests {
 				.andExpect(status().isNotFound());
 	}
 
+	// 8. Processes all items and checks if their status changes to "PROCESSED"
 	@Test
 	void shouldProcessItemsAndUpdateStatus() throws Exception {
 		for (int i = 1; i <= 5; i++) {
@@ -269,7 +284,4 @@ class InternshipApplicationTests {
 			assertEquals("PROCESSED", item.getStatus());
 		}
 	}
-
-
-
 }
