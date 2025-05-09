@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @RestController
@@ -60,7 +61,8 @@ public class ItemController {
     }
 
     @GetMapping("/process")
-    public ResponseEntity<List<Item>> processItems() {
-        return new ResponseEntity<>(itemService.processItemsAsync(), HttpStatus.ACCEPTED);
+    public CompletableFuture<ResponseEntity<List<Item>>> processItems() {
+        return itemService.processItemsAsync()
+                .thenApply(items -> new ResponseEntity<>(items, HttpStatus.OK));
     }
 }
